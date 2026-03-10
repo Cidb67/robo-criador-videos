@@ -1,12 +1,10 @@
-import google.generativeai as genai
+import requests
 import re
 import os
+import json
 
 def gerar_roteiro(tema, duracao="2min"):
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    
-    # Usa o modelo gemini-1.0-pro (versão estável)
-    model = genai.GenerativeModel('gemini-1.0-pro')
+    api_key = os.getenv("GEMINI_API_KEY")
     
     duracao_map = {"1min": "80 palavras", "2min": "150 palavras", "3min": "220 palavras", "5min": "350 palavras"}
     limite = duracao_map.get(duracao, "150 palavras")
@@ -31,17 +29,34 @@ Texto da narracao...
 
 Inscreva-se para mais conteudo!
 """
+
+    # Usa a API REST diretamente
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
     
     try:
-        response = model.generate_content(prompt)
-        return response.text
+        response = requests.post(url, headers=headers, json=data, timeout=60)
+        response.raise_for_status()
+        
+        result = response.json()
+        texto = result["candidates"][0]["content"]["parts"][0]["text"]
+        return texto
+        
     except Exception as e:
-        # Se falhar, tenta com outro modelo
-        print(f"Erro com gemini-1.0-pro: {e}")
-        print("Tentando com gemini-pro...")
-        model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content(prompt)
-        return response.text
+        print(f"Erro na API: {e}")
+        print(f"Resposta: {response.text if 'response' in locals() else 'N/A'}")
+        raise
 
 def parsear_roteiro(roteiro):
     cenas = re.findall(r'\[CENA:\s*(.*?)\]', roteiro, re.IGNORECASE | re.DOTALL)
