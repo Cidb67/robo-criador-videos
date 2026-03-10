@@ -43,16 +43,14 @@ jobs:
           pip install wheel
           pip install numpy==1.24.3
           pip install moviepy==1.0.3
-          pip install google-generativeai==0.3.2
-          pip install gtts==2.4.0
           pip install requests==2.31.0
+          pip install gtts==2.4.0
           pip install pillow==10.0.0
       
-           - name: Configurar credenciais
+      - name: Configurar credenciais Groq
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: |
-          echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> $GITHUB_ENV
+        run: echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> $GITHUB_ENV
       
       - name: Gerar video
         run: |
