@@ -37,15 +37,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick libmagick++-dev
       
-      - name: Instalar dependencias Python
+           - name: Instalar dependencias Python
         run: |
           pip install --upgrade pip
           pip install wheel
+          pip install pillow==9.5.0
           pip install numpy==1.24.3
           pip install moviepy==1.0.3
           pip install requests==2.31.0
           pip install gtts==2.4.0
-          pip install pillow==10.0.0
       
       - name: Configurar credenciais Groq
         env:
