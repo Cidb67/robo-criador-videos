@@ -4,7 +4,7 @@ import os
 
 def gerar_roteiro(tema, duracao="2min"):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-pro')
     
     duracao_map = {"1min": "80 palavras", "2min": "150 palavras", "3min": "220 palavras", "5min": "350 palavras"}
     limite = duracao_map.get(duracao, "150 palavras")
