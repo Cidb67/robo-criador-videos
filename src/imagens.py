@@ -66,4 +66,28 @@ def criar_placeholder(caminho):
         from PIL import Image, ImageDraw, ImageFont
         
         # Cria imagem cinza
-        img = Image.new('RGB', (1280, 720), color=(50, 50, 
+        img = Image.new('RGB', (1280, 720), color=(50, 50, 50))
+        draw = ImageDraw.Draw(img)
+        
+        # Adiciona texto
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 40)
+        except:
+            font = ImageFont.load_default()
+        
+        text = "Imagem Indisponivel"
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        
+        x = (1280 - text_width) // 2
+        y = (720 - text_height) // 2
+        
+        draw.text((x, y), text, fill=(255, 255, 255), font=font)
+        
+        img.save(caminho)
+        
+    except Exception as e:
+        # Se PIL nao funcionar, cria arquivo vazio
+        with open(caminho, "wb") as f:
+            f.write(b"")
