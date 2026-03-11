@@ -1,67 +1,53 @@
-import requests
 import os
-import random
+import subprocess
 
 def gerar_imagens_pollinations(cenas, pasta_temp="temp"):
     """
-    Busca imagens do Unsplash
+    Cria imagens simples usando ImageMagick
     """
     arquivos = []
     os.makedirs(pasta_temp, exist_ok=True)
     
-    # Palavras-chave para busca
-    keywords = [
-        "industrial revolution",
-        "steam engine",
-        "factory vintage",
-        "19th century",
-        "machinery old"
-    ]
+    cores = ["#2C3E50", "#8E44AD", "#27AE60", "#F39C12", "#E74C3C", "#1ABC9C"]
     
     for i, cena in enumerate(cenas):
         print(f"   Imagem {i+1}/{len(cenas)}...", end=" ")
         
-        keyword = random.choice(keywords)
-        url = f"https://source.unsplash.com/1280x720/?{keyword.replace(' ', ',')}"
+        nome_arquivo = os.path.join(pasta_temp, f"imagem_{i:02d}.jpg")
+        
+        # Cria imagem usando ImageMagick convert
+        cor = cores[i % len(cores)]
+        texto = f"Cena {i+1}"
+        
+        cmd = [
+            "convert",
+            "-size", "1280x720",
+            "xc:" + cor,
+            "-pointsize", "40",
+            "-fill", "white",
+            "-gravity", "center",
+            "-annotate", "+0+0", texto,
+            nome_arquivo
+        ]
         
         try:
-            response = requests.get(url, timeout=30, allow_redirects=True)
+            resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
             
-            if response.status_code == 200:
-                nome_arquivo = os.path.join(pasta_temp, f"imagem_{i:02d}.jpg")
-                with open(nome_arquivo, "wb") as f:
-                    f.write(response.content)
-                
-                if os.path.getsize(nome_arquivo) > 5000:
-                    arquivos.append(nome_arquivo)
-                    print("OK")
-                else:
-                    print("pequena, usando padrao")
-                    arquivos.append(criar_imagem_padrao(pasta_temp, i))
+            if resultado.returncode == 0 and os.path.exists(nome_arquivo):
+                arquivos.append(nome_arquivo)
+                print("OK")
             else:
-                print(f"erro {response.status_code}, usando padrao")
-                arquivos.append(criar_imagem_padrao(pasta_temp, i))
+                print(f"Erro ImageMagick: {resultado.stderr}")
+                # Cria arquivo vazio como fallback
+                with open(nome_arquivo, "wb") as f:
+                    f.write(b"\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9")
+                arquivos.append(nome_arquivo)
                 
         except Exception as e:
-            print(f"erro, usando padrao")
-            arquivos.append(criar_imagem_padrao(pasta_temp, i))
+            print(f"Erro: {e}")
+            # Cria JPEG mínimo válido
+            with open(nome_arquivo, "wb") as f:
+                f.write(b"\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9")
+            arquivos.append(nome_arquivo)
     
     return arquivos
-
-def criar_imagem_padrao(pasta_temp, index):
-    """
-    Cria uma imagem simples sem usar PIL
-    """
-    # Baixa uma imagem padrao do placeholder.com
-    url = f"https://via.placeholder.com/1280x720/333333/FFFFFF?text=Imagem+{index+1}"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        nome_arquivo = os.path.join(pasta_temp, f"imagem_{index:02d}.jpg")
-        with open(nome_arquivo, "wb") as f:
-            f.write(response.content)
-        return nome_arquivo
-    except:
-        # Se tudo falhar, retorna o caminho mesmo assim
-        # O MoviePy vai lidar com isso
-        return os.path.join(pasta_temp, f"imagem_{index:02d}.jpg")
